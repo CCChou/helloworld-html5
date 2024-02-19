@@ -1,0 +1,16 @@
+FROM registry.access.redhat.com/ubi8/openjdk-17:1.18 as build
+ARG APP_HOME=/home/jboss APP_NAME=helloworld-html5
+WORKDIR ${APP_HOME}
+USER root
+COPY . .
+RUN chown -R jboss:root ${APP_HOME}
+RUN chmod +x ${APP_HOME}/mvnw
+USER jboss
+RUN ./mvnw package -DskipTests
+
+FROM registry.access.redhat.com/ubi8/openjdk-17:1.18
+ARG APP_HOME=/home/jboss APP_NAME=helloworld-html5
+EXPOSE 8080
+WORKDIR ${APP_HOME}
+COPY --from=build ${APP_HOME}/target/quarkus-app .
+CMD [ "java","-jar","quarkus-run.jar" ]
